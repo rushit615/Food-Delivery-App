@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+*{
+    
+    box-sizing: border-box;
+    font-family:gilroy;
+}
+html,
+    body{
+    height:100%;
+    width:100%;
+}
