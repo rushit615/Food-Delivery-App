@@ -32,6 +32,9 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "owner", "deliveryBoy"],
       required: true,
     },
+    googleId:{
+      type: String
+    },
     resetOtp: {
       type: String,
     },

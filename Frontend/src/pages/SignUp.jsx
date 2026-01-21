@@ -4,10 +4,15 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
 } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth } from "../firebase.js";
 import { FcGoogle } from "react-icons/fc";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import backgroundImage from "../assets/Gemini_Generated_Image_txo4w7txo4w7txo4.png";
 import { useFetcher } from "react-router-dom";
+import axios from "axios";
+import { serverUrl } from "../App";
+import GoogleAuth from '../components/GoogleAuth.jsx'
+
 
 const SignUp = () => {
   const primaryColor = "#ff4d2d";
@@ -94,7 +99,7 @@ const SignUp = () => {
 
       // C. Send to Backend
       console.log("fetch-post-start");
-      const res = await fetch("http://localhost:3000/api/auth/signup", {
+      const res = await fetch(`${serverUrl}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -188,13 +193,48 @@ const SignUp = () => {
     }
   };
 
+  const handleGoogleAuth=async(e)=>{
+    if(!mobile){
+      return setErr("Mobile number is required");
+    }
+try {
+  
+  const provider = new GoogleAuthProvider()
+  const result = await signInWithPopup(auth,provider)
+const token = await result.user.getIdToken();
+const data = await axios.post(`${serverUrl}/api/auth/google-auth`,{
+
+  token, // Send the token! Your backend will decode this to get email/name.
+        role,
+        mobile,
+      },
+      { withCredentials: true
+})
+
+
+}catch (error) {
+    console.error("Google Auth Error:", error);
+    
+    // Handle specific Firebase errors (optional but good UX)
+    if (error.code === 'auth/popup-closed-by-user') {
+        setErr("Login cancelled.");
+    } else {
+        setErr("Login failed. Please try again.");
+    }
+  } finally {
+    setLoading(false); // Stop loading spinner regardless of success/fail
+  }
+
+
+  }
+
   return (
     <>
       {/* 3. ADDED THE INVISIBLE RECAPTCHA CONTAINER HERE */}
       <div id="recaptcha-container"></div>
 
       {
-        /*step === 1 ? (<>
+       step === 1 ? (<>
         
         <main  className="w-screen h-screen bg-cover bg-center bg-no-repeat flex justify-center items-center absolute z-0 opacity-40"
           style={{ backgroundImage: `url(${backgroundImage})` }}
@@ -273,15 +313,11 @@ active:scale-97 hover:shadow-xl hover:shadow-red-200
             <hr className="w-40" />
             <span className="text-xl ">or</span>
             <hr className="w-40" /></div>
-            <button className="flex bg-cyan-500  w-[80%] h-15 text-xl tracking-wide text-red-100 rounded items-center justify-center ml-15  mt-3">
-              <FcGoogle size="35" display="inline" className="mr-2" />
-              
-                Continue with Google
-              
-            </button>
+            
+            <GoogleAuth />
           </div>
         </main></>
-      ) : */ <section className="relative">
+      ) :  <section className="relative">
           <section
             className="w-screen h-screen bg-cover bg-center bg-no-repeat  opacity-40"
             style={{ backgroundImage: `url(${backgroundImage})` }}
@@ -323,6 +359,8 @@ active:scale-97 hover:shadow-xl hover:shadow-red-200
       </p>
     </div>
           </div>
+         
+
         </section>
       }
     </>
